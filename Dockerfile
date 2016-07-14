@@ -37,5 +37,6 @@ RUN echo "CC=/opt/afl-fuzz/bin/afl-gcc" >> /root/.bashrc \
 && echo "CXX=/opt/afl-fuzz/bin/afl-g++" >> /root/.bashrc
 
 ADD fuzz_random.sh /opt/afl-fuzz/
+ADD afl-fuzz-parallel /opt/afl-fuzz/bin/
 CMD ["/opt/afl-fuzz/fuzz_random.sh"]
 
