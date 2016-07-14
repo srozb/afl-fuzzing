@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker run --name afl-fuzz -it srozb/afl-fuzzing bash
+docker run --name afl-fuzz-dnsmasq -it srozb/afl-fuzzing:dnsmasq

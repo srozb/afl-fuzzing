@@ -12,26 +12,30 @@ ENV PREFIX /opt/afl-fuzz
 ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PREFIX/bin
 
 RUN apt-get update -y && apt-get install -y gcc cmake make libtool-bin wget \
-python automake bison libglib2.0
+python automake bison libglib2.0 git libssl-dev nettle-dev
 
+# Get sources
 WORKDIR /usr/src/
-
 RUN curl -o afl-$VER.tgz http://lcamtuf.coredump.cx/afl/releases/afl-$VER.tgz \
-&& tar -xzf afl-$VER.tgz
+&& tar -xzf afl-$VER.tgz && git clone https://github.com/iagox86/dnsmasq-fuzzing.git
 
+# Build afl-fuzz
 WORKDIR /usr/src/afl-$VER
-
 RUN make && make install
+
+# Build afl-fuzz qemu-mode
 WORKDIR /usr/src/afl-$VER/qemu_mode
+RUN ./build_qemu_support.sh && mkdir -p $PREFIX/in -p $PREFIX/out
 
-RUN ./build_qemu_support.sh
-
-RUN mkdir -p $PREFIX/in -p $PREFIX/out
+# Build dnsmasq w/ fuzzing support
+WORKDIR /usr/src/dnsmasq-fuzzing
+RUN CC=/opt/afl-fuzz/bin/afl-gcc CFLAGS=-DFUZZ make
 
 WORKDIR $PREFIX
 
 RUN echo "CC=/opt/afl-fuzz/bin/afl-gcc" >> /root/.bashrc \ 
 && echo "CXX=/opt/afl-fuzz/bin/afl-g++" >> /root/.bashrc
 
-CMD ["/bin/bash"]
+ADD fuzz_random.sh /opt/afl-fuzz/
+CMD ["/opt/afl-fuzz/fuzz_random.sh"]
 
